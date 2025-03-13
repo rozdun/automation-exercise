@@ -17,10 +17,10 @@ export default defineConfig({
   reporter: 'html',
   use: {
     testIdAttribute: 'data-qa',
-    baseURL: 'https://www.automationexercise.com/',
+    baseURL: 'https://www.automationexercise.com',
     trace: 'on-first-retry',
   },
-
+  
   projects: [
     {
       name: 'chromium',

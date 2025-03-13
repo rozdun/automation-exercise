@@ -4,6 +4,7 @@ import { LoginPage } from "./loginPage"
 import { ContactUsPage } from "./contactUsPage"
 import { ProductsPage } from "./productsPage"
 import { AccountDeletedPage } from "./accountDeletedPage"
+import { CartPage } from "./cartPage"
 
 
 export class NavigationBar {
@@ -52,7 +53,7 @@ export class NavigationBar {
     
     async gotoCart() {
         await this.cartButton.click()
-        //return new CartPage(this.page)
+        return new CartPage(this.page)
     }
     
     async gotoSignup() {

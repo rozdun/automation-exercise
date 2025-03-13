@@ -1,14 +1,50 @@
 import { Locator, Page } from "@playwright/test"
 import { ProductDetailsPage } from "./productDetailsPage"
+import { CartPage } from "./cartPage"
 
 
 export class ProductsPage {
     readonly page: Page
+    
+    readonly searchProductInput: Locator
+    readonly searchProductButton: Locator
+    readonly searchedProductsHeader: Locator
+    
+    readonly cartModal: Locator
+    readonly continueShoppingButton: Locator
+    readonly viewCartButton: Locator
+    
+    readonly leftSidebar: Locator
+    readonly categorySection: Locator
+    readonly brandsSection: Locator
+    
+    readonly allProductsSection: Locator
     readonly allProducts: Locator
+    
     
     constructor(page: Page) {
         this.page = page
-        this.allProducts = page.locator('.features_items > .col-sm-4')
+        
+        this.searchProductInput = page.getByRole('textbox', { name: 'Search Product' })
+        this.searchProductButton = page.locator('#submit_search')
+        this.searchedProductsHeader = page.getByRole('heading', { name: 'Searched Products' })
+        
+        this.cartModal = page.locator('#cartModal')
+        this.continueShoppingButton = this.cartModal.getByRole('button', { name: 'Continue Shopping' })
+        this.viewCartButton = this.cartModal.getByText('View Cart')
+        
+        this.leftSidebar = page.locator('.left-sidebar')
+        this.categorySection = this.leftSidebar.locator('#accordian')
+        this.brandsSection = this.leftSidebar.locator('.brands_products')
+        
+        this.allProductsSection = page.locator('.features_items')
+        this.allProducts = this.allProductsSection.locator('.col-sm-4')
+    }
+    
+    
+    async searchProduct(searchText: string) {
+        await this.searchProductInput.fill(searchText)
+        await this.searchProductButton.click()
     }
     
     async viewProduct(productId: number) {
@@ -16,5 +52,20 @@ export class ProductsPage {
         await product.getByRole('link', { name: 'View Product' }).click()
         
         return new ProductDetailsPage(this.page)
+    }
+    
+    async addProductToCart(productId: number) {
+        const product = this.allProducts.nth(productId - 1)
+        await product.locator('.productinfo >> .add-to-cart').click()
+    }
+    
+    async continueShopping() {
+        await this.continueShoppingButton.click()
+    }
+    
+    async viewCart() {
+        await this.viewCartButton.click()
+        
+        return new CartPage(this.page)
     }
 }

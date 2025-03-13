@@ -35,7 +35,7 @@ export class SignupPage {
         
         if (user.subscribe_newsletter)  await this.page.locator('#newsletter').check()
         if (user.receive_offers)        await this.page.locator('#optin').check()
-            
+        
         await this.page.getByTestId('first_name').fill(user.firstname)
         await this.page.getByTestId('last_name').fill(user.lastname)
         await this.page.getByTestId('company').fill(user.company)
