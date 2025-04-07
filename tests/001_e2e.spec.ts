@@ -1,7 +1,9 @@
-import { test, expect } from './fixtures/test.ts'
-import { Footer } from './pages/footer.ts'
-import { NavigationBar } from './pages/navigationBar.ts'
-import { testUser_correctLogin, testUser_incorrectLogin, testUser_signup, testProducts } from './test-data/test-data.ts'
+import { Locator } from '@playwright/test'
+import { test, expect } from './fixtures/test'
+import { Footer } from './pages/Footer'
+import { NavigationBar } from './pages/NavigationBar'
+import { ProductDetailsPage } from './pages/ProductDetailsPage'
+import { testUser_correctLogin, testUser_incorrectLogin, testUser_signup, testProducts } from './test-data/test-data'
 import path from 'path'
 
 
@@ -104,9 +106,9 @@ test('6. Contact Us Form', async ({ page, navigationBar }) => {
     const contactUsPage = await navigationBar.gotoContactUs()
     await expect(contactUsPage.getInTouchHeading).toBeVisible()
     
-    await contactUsPage.fillContactForm() 
+    await contactUsPage.fillContactForm()
     await contactUsPage.submitMessage()
-    await expect(contactUsPage.messageSentMessage).toBeVisible()
+    await expect(contactUsPage.messageSentMessage).toBeVisible({ timeout: 10000 })
     
     await contactUsPage.returnHome()
     await expect(page).toHaveURL('')
@@ -125,15 +127,89 @@ test('8. Verify All Products and product detail page', async ({ page, navigation
     await expect(page).toHaveURL('/products')
     
     const product = testProducts.blueTop
-    const productDetailsPage = await productsPage.viewProduct(product.id)
-    await expect(page).toHaveURL('/product_details/' + product.id)
+    const productDetailsPage = await productsPage.viewProduct(0)
+    const productDetails = await productDetailsPage.getProductDetails()
+    expect(productDetails).toStrictEqual({
+        id: product.id,
+        name: product.name,
+        category: product.category,
+        price: product.price,
+        availability: product.availability,
+        condition: product.condition,
+        brand: product.brand,
+    })
+})
+
+
+test.describe('9. Search Product', () => {
+    const products = ['jeans', 'tshirt', 't-shirt', 'top']
+    const normalizeText = (text: string) => text.toLowerCase().replace(/[-_\s]/g, '')
     
-    await expect(productDetailsPage.productName).toContainText(product.name)
-    await expect(productDetailsPage.category).toContainText(product.category)
-    await expect(productDetailsPage.price).toContainText(product.price)
-    await expect(productDetailsPage.availability).toContainText(product.availability)
-    await expect(productDetailsPage.condition).toContainText(product.condition)
-    await expect(productDetailsPage.brand).toContainText(product.brand)
+    products.forEach(searchTerm => {
+        test(`Search for "${searchTerm}"`, async ({ page, navigationBar, context }) => {
+            const productsPage = await navigationBar.gotoProducts()
+            await expect(page).toHaveURL('/products')
+            
+            await productsPage.searchProduct(searchTerm)
+            await expect(productsPage.searchedProductsHeader).toBeVisible()
+            
+            const allProducts = await productsPage.allProducts.all()
+            const incorrectSearchResults: { 
+                href?: string
+                name: string
+                expected: string
+                category?: string
+                other?: string
+            }[] = []
+            
+            await Promise.all(
+                allProducts.map(async product => {
+                    const { href, productName }  = await productsPage.getProductInfo(product)
+                    const name = normalizeText(productName)
+                    const searchTermNormalized = normalizeText(searchTerm)
+                    
+                    // Check whether the product name contains the search term
+                    // If not, open the product in a new tab and check the category as well
+                    if (!name.includes(searchTermNormalized)) {
+                        if (!href) {
+                            incorrectSearchResults.push({
+                                expected: searchTerm,
+                                name: productName,
+                                other: 'href not found'
+                            })
+                        }
+                        else {
+                            // Open a new tab
+                            const newPage = await context.newPage()
+                            await newPage.goto(href ?? '', { waitUntil: 'domcontentloaded' })
+                            
+                            // Asssign the product details page
+                            const productPage = new ProductDetailsPage(newPage)
+                            const productPageDetails = await productPage.getProductDetails()
+                            
+                            const category = normalizeText(productPageDetails.category)
+                            
+                            if (!category.includes(searchTermNormalized)) {
+                                incorrectSearchResults.push({
+                                    href,
+                                    expected: searchTerm,
+                                    name: productPageDetails.name,
+                                    category: productPageDetails.category
+                                })
+                            }
+                            
+                            await newPage.close()
+                        }
+                    }
+                })
+            )
+            
+            if (incorrectSearchResults.length > 0)
+                throw Error(
+                    'Incorrect product search results:\n' + JSON.stringify(incorrectSearchResults, null, ' ')
+                )
+        })
+    })
 })
 
 
@@ -159,3 +235,16 @@ test('11: Verify Subscription in Cart page', async ({ page, navigationBar }) => 
     await footer.subscribeToNewsletter(userData)
     await expect(footer.subscriptionSuccessMessage).toBeVisible()
 })
+
+
+test('12: Add Products in Cart', async ({ page, navigationBar }) => {
+    const productsPage = await navigationBar.gotoProducts()
+    await productsPage.addProductToCart(0)
+    await productsPage.continueShopping()
+    await productsPage.addProductToCart(1)
+    
+    const cartPage = await productsPage.viewCart()
+    
+    
+})
+

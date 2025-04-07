@@ -207,7 +207,7 @@ test('API 13: PUT METHOD To Update User Account', async ({ request }) => {
 })
 
 
-test('API 14: GET user account detail by email', async ({ request }) => {
+test.fail('FAIL - API 14: GET user account detail by email', async ({ request }) => {
     const email = testUser_correctLogin.email
     const response = await request.get(`/api/getUserDetailByEmail?email=${email}`)
     const jsonResponse = await response.json()

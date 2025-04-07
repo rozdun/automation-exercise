@@ -1,9 +1,4 @@
 import { Locator, Page } from "@playwright/test"
-import { SignupPage } from "./signupPage"
-import { LoginPage } from "./loginPage"
-import { ContactUsPage } from "./contactUsPage"
-import { ProductsPage } from "./productsPage"
-import { AccountDeletedPage } from "./accountDeletedPage"
 
 
 export class Footer {

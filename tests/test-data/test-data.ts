@@ -56,23 +56,23 @@ export const testUser_signup = {
 
 export const testProducts = {
     blueTop: {
-        id: 1,
+        id: '1',
         image: '/get_product_picture/1',
         name: 'Blue Top',
-        category: 'Women > Tops',
+        category: 'Category: Women > Tops',
         price: 'Rs. 500',
-        availability: 'In Stock',
-        condition: 'New',
-        brand: 'Polo',
+        availability: 'Availability: In Stock',
+        condition: 'Condition: New',
+        brand: 'Brand: Polo',
     },
     winterTop: {
-        id: 5,
+        id: '5',
         image: '/get_product_picture/5',
         name: 'Winter Top',
-        category: 'Women > Tops',
+        category: 'Category: Women > Tops',
         price: 'Rs. 600',
-        availability: 'In Stock',
-        condition: 'New',
-        brand: 'Mast & Harbour',
+        availability: 'Availability: In Stock',
+        condition: 'Condition: New',
+        brand: 'Brand: Mast & Harbour',
     },
 }

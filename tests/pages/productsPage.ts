@@ -1,6 +1,6 @@
 import { Locator, Page } from "@playwright/test"
-import { ProductDetailsPage } from "./productDetailsPage"
-import { CartPage } from "./cartPage"
+import { ProductDetailsPage } from "./ProductDetailsPage"
+import { CartPage } from "./CartPage"
 
 
 export class ProductsPage {
@@ -47,15 +47,16 @@ export class ProductsPage {
         await this.searchProductButton.click()
     }
     
-    async viewProduct(productId: number) {
-        const product = this.allProducts.nth(productId - 1)
+    async viewProduct(index: number) {
+        const product = this.allProducts.nth(index)
         await product.getByRole('link', { name: 'View Product' }).click()
         
         return new ProductDetailsPage(this.page)
     }
     
+    
     async addProductToCart(productId: number) {
-        const product = this.allProducts.nth(productId - 1)
+        const product = this.allProducts.nth(productId)
         await product.locator('.productinfo >> .add-to-cart').click()
     }
     
@@ -68,4 +69,15 @@ export class ProductsPage {
         
         return new CartPage(this.page)
     }
+    
+    async getProductInfo(product: Locator) {
+        const href = await product.locator('.choose >> a').getAttribute('href')
+        const productName = await product.locator('.productinfo >> p').innerText()
+        
+        return {
+            href,
+            productName
+        }
+    }
+    
 }

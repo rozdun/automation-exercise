@@ -1,9 +1,9 @@
 import { test as base, Page, expect } from '@playwright/test'
-import { NavigationBar } from '../pages/navigationBar'
+import { NavigationBar } from '../pages/NavigationBar'
 
 export const test = base.extend<{ page: Page, navigationBar: NavigationBar }>({
     page: async ({ page }, use) => {
-        await page.goto('')
+        await page.goto('', { waitUntil: 'domcontentloaded' })
         //await expect(page.locator('#header >> .logo')).toBeVisible()
         //
         //// Cookie consent
