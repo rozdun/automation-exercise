@@ -1,15 +1,14 @@
 import { Locator, Page } from '@playwright/test'
 
 export class AccountDeletedPage {
-    readonly page: Page
-    readonly continueButton: Locator
+    private readonly continueButton: Locator
 
-    constructor(page: Page) {
-        this.page = page
-        this.continueButton = page.getByTestId('continue-button')
+    constructor(private readonly page: Page) {
+        this.continueButton = this.page.getByTestId('continue-button')
     }
-
-    async continueToHome() {
+    
+    
+    async continueToHome(): Promise<void> {
         await this.continueButton.click()
     }
 }

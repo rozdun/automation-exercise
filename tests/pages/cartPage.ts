@@ -1,22 +1,35 @@
 import { Locator, Page } from "@playwright/test"
+import { CartProduct } from "../test-data/test-data"
+import { CartTable } from "../components/CartTable"
+import { CheckoutPage } from "./CheckoutPage"
 
 
 export class CartPage {
-    readonly page: Page
-    
     readonly cartItems: Locator
-    readonly productList: Locator
+    readonly cartProductRows: Locator
+    readonly cartIsEmptySection: Locator
     
-    constructor(page: Page) {
-        this.page = page
+    private readonly proceedToCheckoutButton: Locator
+    
+    constructor(private readonly page: Page) {
+        this.cartItems = this.page.locator('#cart_items')
+        this.cartProductRows = this.cartItems.locator('#cart_info_table >> tbody >> tr')
+        this.cartIsEmptySection = this.cartItems.locator('#empty_cart')
         
-        this.cartItems = page.locator('#cart_items')
-        this.productList = page.locator('#cart_info_table >> tbody >> tr')
+        this.proceedToCheckoutButton = this.page.getByText('Proceed To Checkout')
     }
     
-    async login({ email, password }: { email: string, password: string }) {
-        await this.page.getByTestId('login-email').fill(email)
-        await this.page.getByTestId('login-password').fill(password)
-        await this.page.getByTestId('login-button').click()
+    
+    async getCartProducts(): Promise<CartProduct[]> {
+        return await new CartTable(this.cartProductRows).getProducts()
+    }
+    
+    async removeProduct(order: number): Promise<void> {
+        await this.cartProductRows.nth(order).locator('.cart_quantity_delete').click()
+    }
+    
+    async proceedToCheckout(): Promise<CheckoutPage> {
+        await this.proceedToCheckoutButton.click()
+        return new CheckoutPage(this.page)
     }
 }

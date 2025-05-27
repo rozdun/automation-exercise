@@ -1,21 +1,30 @@
-import { test as base, Page, expect } from '@playwright/test'
-import { NavigationBar } from '../pages/NavigationBar'
+import { test as base, Page, TestType } from '@playwright/test'
+import { NavigationBar } from '../components/NavigationBar'
+import { CartModal } from '../components/CartModal'
+import { CheckoutModal } from '../components/CheckoutModal'
+import { ProductFiltersSidebar } from '../components/ProductFiltersSidebar'
 
-export const test = base.extend<{ page: Page, navigationBar: NavigationBar }>({
+type Fixtures = {
+  page: Page,
+  navigationBar: NavigationBar,
+  cartModal: CartModal,
+  checkoutModal: CheckoutModal,
+  productFiltersSidebar: ProductFiltersSidebar,
+}
+
+export const test: TestType<Fixtures, object> = base.extend<Fixtures>({
     page: async ({ page }, use) => {
-        await page.goto('', { waitUntil: 'domcontentloaded' })
-        //await expect(page.locator('#header >> .logo')).toBeVisible()
-        //
-        //// Cookie consent
-        //await page.getByRole('dialog')
-        //          .getByRole('button', { name: 'Consent' }).click()
+        await page.goto('/', { waitUntil: 'domcontentloaded' })
         
-        use(page)
+        await use(page)
     },
-    navigationBar: async ({ page }, use) => {
-        const navigationBar = new NavigationBar(page)
-        use(navigationBar)
-    }
+    
+    navigationBar: async ({ page }, use)            => await use(new NavigationBar(page)),
+    cartModal: async ({ page }, use)                => await use(new CartModal(page)),
+    checkoutModal: async ({ page }, use)            => await use(new CheckoutModal(page)),
+    productFiltersSidebar: async ({ page }, use)    => await use(new ProductFiltersSidebar(page)),
 })
 
 export { expect } from '@playwright/test'
+
+

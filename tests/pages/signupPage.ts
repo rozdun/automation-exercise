@@ -1,16 +1,15 @@
 import { Locator, Page } from "@playwright/test"
+import { User } from "../test-data/test-data"
 
 export class SignupPage {
-    readonly page: Page
     readonly signupSection: Locator
     readonly signupHeading: Locator
     readonly enterAccountInformationText: Locator
     readonly accountCreatedMessage: Locator
     readonly emailExistsErrorMessage: Locator
     
-    constructor(page: Page) {
-        this.page = page
-        this.signupSection = page.locator('.signup-form')
+    constructor(private readonly page: Page) {
+        this.signupSection = this.page.locator('.signup-form')
         this.signupHeading = this.signupSection.getByRole('heading', { name: 'New User Signup!' })
         this.emailExistsErrorMessage = this.signupSection.locator('p', { hasText: 'Email Address already exist!' })
         
@@ -18,13 +17,14 @@ export class SignupPage {
         this.accountCreatedMessage = this.page.getByTestId('account-created')
     }
     
-    async signup({ name, email }: { name: string, email: string }) {
-        await this.page.getByTestId('signup-name').fill(name)
-        await this.page.getByTestId('signup-email').fill(email)
+    
+    async signup(user: User): Promise<void> {
+        await this.page.getByTestId('signup-name').fill(user.name)
+        await this.page.getByTestId('signup-email').fill(user.email)
         await this.page.getByTestId('signup-button').click()
     }
     
-    async fillRegistrationForm(user) {
+    async fillRegistrationForm(user: User): Promise<void> {
         await this.page.getByLabel(user.title + '.').check()
         
         await this.page.getByTestId('password').fill(user.password)
@@ -52,7 +52,7 @@ export class SignupPage {
         await this.page.getByRole('button', { name: 'Create Account' }).click()
     }
     
-    async completeRegistration() {
+    async completeRegistration(): Promise<void> {
         await this.page.getByTestId('continue-button').click()
     }
 }

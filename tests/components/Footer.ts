@@ -1,19 +1,16 @@
 import { Locator, Page } from "@playwright/test"
+import { User } from "../test-data/test-data"
 
 
 export class Footer {
-    readonly page: Page
-    
     readonly footer: Locator
     readonly subscriptionHeader: Locator
     readonly subscriptionEmailInput: Locator
     readonly subscriptionSubmitButton: Locator
     readonly subscriptionSuccessMessage: Locator
     
-    constructor(page: Page) {
-        this.page = page
-        
-        this.footer = page.locator('#footer')
+    constructor(private readonly page: Page) {
+        this.footer = this.page.locator('#footer')
         this.subscriptionHeader = this.footer.getByRole('heading', { name: 'Subscription' })
         this.subscriptionEmailInput = this.footer.locator('#susbscribe_email')
         this.subscriptionSubmitButton = this.footer.locator('#subscribe')
@@ -21,8 +18,8 @@ export class Footer {
     }
     
     
-    async subscribeToNewsletter({ email }: { email: string }) {
-        await this.subscriptionEmailInput.fill(email)
+    async subscribeToNewsletter(user: User): Promise<void> {
+        await this.subscriptionEmailInput.fill(user.email)
         await this.subscriptionSubmitButton.click()
     }
 }
