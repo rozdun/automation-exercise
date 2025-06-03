@@ -3,9 +3,9 @@ import { CartPage } from "../pages/CartPage"
 
 
 export class CartModal {
-    readonly cartModal: Locator
-    readonly continueShoppingButton: Locator
-    readonly viewCartButton: Locator
+    private readonly cartModal: Locator
+    private readonly continueShoppingButton: Locator
+    private readonly viewCartButton: Locator
     
     constructor(private readonly page: Page) {
         this.cartModal = this.page.locator('#cartModal')

@@ -4,9 +4,9 @@ import { LoginPage } from "../pages/LoginPage"
 
 
 export class CheckoutModal {
-    readonly checkoutModal: Locator
-    readonly continueOnCartButton: Locator
-    readonly viewCartButton: Locator
+    private readonly checkoutModal: Locator
+    private readonly continueOnCartButton: Locator
+    private readonly viewCartButton: Locator
     
     constructor(private readonly page: Page) {
         this.checkoutModal = this.page.locator('#checkoutModal')

@@ -7,13 +7,13 @@ export class CartTable {
     
     async getProducts(hasTotalAmountRow = false): Promise<CartProduct[]> {
         const items: CartProduct[] = []
-        let rows: number = await this.root.locator('tbody > tr').count()
+        let rows: number = await this.root.count()
         
         if (hasTotalAmountRow)
             rows--
         
         for (let i: number = 0; i < rows; i++) {
-            const row: Locator = this.root.locator('tbody > tr').nth(i)
+            const row: Locator = this.root.nth(i)
             
             const name: string     = await row.locator('.cart_description >> a').innerText()
             const category: string = await row.locator('.cart_description >> p').innerText()

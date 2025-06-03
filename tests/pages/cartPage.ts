@@ -28,6 +28,13 @@ export class CartPage {
         await this.cartProductRows.nth(order).locator('.cart_quantity_delete').click()
     }
     
+    async clearCart(): Promise<void> {
+        while (await this.cartIsEmptySection.isVisible() === false) {
+            await this.cartProductRows.nth(0).locator('.cart_quantity_delete').click()
+            await this.page.waitForLoadState('networkidle')
+        }
+    }
+    
     async proceedToCheckout(): Promise<CheckoutPage> {
         await this.proceedToCheckoutButton.click()
         return new CheckoutPage(this.page)

@@ -8,16 +8,16 @@ import { ProductsPage } from "../pages/ProductsPage"
 
 
 export class NavigationBar {
-    readonly header: Locator
-    readonly homeButton: Locator
-    readonly productsButton: Locator
+    private readonly header: Locator
+    private readonly homeButton: Locator
+    private readonly productsButton: Locator
     readonly cartButton: Locator
     readonly signupLoginButton: Locator
-    readonly testCasesButton: Locator
-    readonly contactUsButton: Locator
+    private readonly testCasesButton: Locator
+    private readonly contactUsButton: Locator
     
-    readonly logoutButton: Locator
-    readonly deleteAccountButton: Locator
+    private readonly logoutButton: Locator
+    private readonly deleteAccountButton: Locator
     readonly accountDeletedMessage: Locator
     readonly loggedInUser: Locator
     
@@ -64,12 +64,26 @@ export class NavigationBar {
     
     async gotoContactUs(): Promise<ContactUsPage> {
         await this.contactUsButton.click()
+
+        // Wait briefly for possible error page
+        const errorHeading: Locator = this.page.getByRole('heading', { name: /under heavy load/i })
+        const errorVisible: boolean = await Promise.race([
+            errorHeading.isVisible({ timeout: 1000 }),
+            this.page.waitForSelector('#contact-page', { timeout: 3000 }).then(() => false)
+        ])
+
+        if (errorVisible) {
+            throw new Error('Server queue page detected: Contact Us page not available')
+        }
+
+        await this.page.waitForLoadState('domcontentloaded')
         return new ContactUsPage(this.page)
     }
     
     async gotoTestCases(): Promise<void> {
         await this.testCasesButton.click()
     }
+
     
     
     // Logged in user

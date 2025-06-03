@@ -48,13 +48,17 @@ export const testUser_correctLogin: User = {
 
 export const testUser_incorrectLogin: User = {
     ...testUser_correctLogin,
-    email: 'rozdun_incorrect_email@rozdun.com',
+    email: 'rozdun_correct_email@rozdun.com',
     password: 'rozdun_incorrect_password',
 }
 
+
+const firstname: string = faker.person.firstName()
+const lastname: string = faker.person.lastName()
+
 export const testUser_signup: Omit<User, 'email'> = {
     id: 123456,
-    name: faker.person.firstName(),
+    name: `${firstname} ${lastname}`,
     
     title: faker.helpers.arrayElement(['Mr', 'Mrs']),
     password: faker.internet.password({ length: 12, memorable: true }),
@@ -63,8 +67,8 @@ export const testUser_signup: Omit<User, 'email'> = {
     birth_year: faker.number.int({ min: 1970, max: 2005 }).toString(),
     subscribe_newsletter: faker.datatype.boolean(),
     receive_offers: faker.datatype.boolean(),
-    firstname: faker.person.firstName(),
-    lastname: faker.person.lastName(),
+    firstname: firstname,
+    lastname: lastname,
     company: faker.company.name(),
     address1: faker.location.streetAddress(),
     address2: faker.location.secondaryAddress(),

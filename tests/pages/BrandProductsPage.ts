@@ -2,7 +2,7 @@ import { Locator, Page } from "@playwright/test"
 
 
 export class BrandProductsPage {
-    readonly categoryTree: Locator
+    private readonly categoryTree: Locator
     readonly categoryProductsHeader: Locator
     
     constructor(private readonly page: Page) {

@@ -2,7 +2,7 @@ import { Locator, Page } from "@playwright/test"
 import { User } from "../test-data/test-data"
 
 export class SignupPage {
-    readonly signupSection: Locator
+    private readonly signupSection: Locator
     readonly signupHeading: Locator
     readonly enterAccountInformationText: Locator
     readonly accountCreatedMessage: Locator

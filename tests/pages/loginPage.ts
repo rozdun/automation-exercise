@@ -3,7 +3,7 @@ import { User } from "../test-data/test-data"
 
 
 export class LoginPage {
-    readonly loginSection: Locator
+    private readonly loginSection: Locator
     readonly loginHeading: Locator
     readonly invalidLoginErrorMessage: Locator
     

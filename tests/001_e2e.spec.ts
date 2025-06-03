@@ -1,24 +1,23 @@
 import { test as baseTest } from '@playwright/test'
 import { test, expect } from './fixtures/test'
 import { ContactUsPage } from './pages/ContactUsPage'
-import { Footer } from './components/Footer'
 import { LoginPage } from './pages/LoginPage'
 import { ProductDetailsPage } from './pages/ProductDetailsPage'
 import { ProductsPage } from './pages/ProductsPage'
 import { SignupPage } from './pages/SignupPage'
 import { User, Product, testUser_correctLogin, testUser_incorrectLogin, testProducts, CartProduct, SearchError, Address, testPaymentDetails } from './test-data/test-data'
 import { CartPage } from './pages/CartPage'
-import { AccountDeletedPage } from './pages/AccountDeletedPage'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
-import { extractPrice, generateUserData } from './utils/utils'
-import { completeSignupFlow } from './utils/signup'
+import { extractPrice, generateUserData, normalizeText } from './utils/utils'
 import { CheckoutPage } from './pages/CheckoutPage'
 import { PaymentPage } from './pages/PaymentPage'
 import { OrderConfirmationPage } from './pages/OrderConfirmationPage'
 import { Brand, brands, categories, Category, Subcategory } from './test-data/product-filters'
 import { CategoryProductsPage } from './pages/CategoryProductsPage'
 import { BrandProductsPage } from './pages/BrandProductsPage'
+import { HomePage } from './pages/HomePage'
+import fs from 'fs/promises'
 
 const __filename: string = fileURLToPath(import.meta.url)
 const __dirname: string = dirname(__filename)
@@ -26,21 +25,14 @@ const storagePath: string = resolve(__dirname, 'test-data/gdpr.json')
 baseTest.use({
     storageState: storagePath
 })
-console.log("Loading storage state from: ", storagePath)
+//console.log("Loading storage state from: ", storagePath)
 
 
 
-test('1. Register User', async ({ page, navigationBar }) => {
+test('1. Register User', async ({ navigationBar, flows }) => {
     const user: User = generateUserData()
-    await completeSignupFlow(navigationBar, user)
-    
-    await test.step("Delete Account", async () => {
-        const accountDeletedPage: AccountDeletedPage = await navigationBar.deleteAccount()
-        await expect(navigationBar.accountDeletedMessage).toBeVisible()
-        
-        await accountDeletedPage.continueToHome()
-        await expect(page).toHaveURL('')
-    })
+    await flows.registerAccount(navigationBar, user)
+    await flows.deleteAccount(navigationBar)
 })
 
 
@@ -147,10 +139,9 @@ test.describe('9. Search Products', () => {
 })
 
 
-test('10. Verify Subscription in home page', async ({ page }) => {
+test('10. Verify Subscription in home page', async ({ footer }) => {
     const user: User = generateUserData()
     
-    const footer: Footer = new Footer(page)
     await expect(footer.subscriptionHeader).toBeVisible()
     
     await footer.subscribeToNewsletter(user)
@@ -158,12 +149,11 @@ test('10. Verify Subscription in home page', async ({ page }) => {
 })
 
 
-test('11: Verify Subscription in Cart page', async ({ page, navigationBar }) => {
+test('11: Verify Subscription in Cart page', async ({ navigationBar, footer }) => {
     const user: User = generateUserData()
     const cartPage: CartPage = await navigationBar.gotoCart()
     await expect(cartPage.cartItems).toBeVisible()
     
-    const footer: Footer = new Footer(page)
     await expect(footer.subscriptionHeader).toBeVisible()
     
     await footer.subscribeToNewsletter(user)
@@ -186,7 +176,6 @@ test('12: Add Products in Cart', async ({ navigationBar, cartModal }) => {
     
     const cartProductsList: CartProduct[] = await cartPage.getCartProducts()
     const winterTopTotal: number = 2 * extractPrice(testProducts.winterTop.price)
-    
     expect(cartProductsList[0]).toStrictEqual({
         name:     testProducts.blueTop.name,
         category: testProducts.blueTop.category,
@@ -227,7 +216,7 @@ test('13: Verify Product quantity in Cart', async ({ page, cartModal }) => {
 })
 
 
-test('14: Place Order: Register while Checkout', async ({ navigationBar, cartModal, checkoutModal }) => {
+test('14: Place Order: Register while Checkout', async ({ navigationBar, cartModal, checkoutModal, flows }) => {
     const productsPage: ProductsPage = await navigationBar.gotoProducts()
     await productsPage.addProductToCart(testProducts.blueTop)
     await cartModal.continueShopping()
@@ -240,12 +229,12 @@ test('14: Place Order: Register while Checkout', async ({ navigationBar, cartMod
     await checkoutModal.proceedToSignup()
     
     const user: User = generateUserData()
-    await completeSignupFlow(navigationBar, user)
+    await flows.registerAccount(navigationBar, user)
     
     cartPage = await navigationBar.gotoCart()
     const checkoutPage: CheckoutPage = await cartPage.proceedToCheckout()
-    const address: Address = await checkoutPage.getDeliveryAddress()
-    expect(address).toStrictEqual({
+    const deliveryAddress: Address = await checkoutPage.getDeliveryAddress()
+    expect(deliveryAddress).toStrictEqual({
         fullName:       user.title + '. ' + user.firstname + ' ' + user.lastname,
         company:        user.company,
         address1:       user.address1,
@@ -284,18 +273,13 @@ test('14: Place Order: Register while Checkout', async ({ navigationBar, cartMod
     const orderConfirmationPage: OrderConfirmationPage = await paymentPage.payAndConfirmOrder()
     await expect(orderConfirmationPage.orderPlacedHeading).toContainText('Order Placed!')
     
-    await test.step("Delete Account", async () => {
-        const accountDeletedPage: AccountDeletedPage = await navigationBar.deleteAccount()
-        await expect(navigationBar.accountDeletedMessage).toBeVisible()
-        
-        await accountDeletedPage.continueToHome()
-    })
+    await flows.deleteAccount(navigationBar)
 })
 
 
-test('15: Place Order: Register before Checkout', async ({ navigationBar, cartModal }) => {
+test('15: Place Order: Register before Checkout', async ({ navigationBar, cartModal, flows }) => {
     const user: User = generateUserData()
-    await completeSignupFlow(navigationBar, user)
+    await flows.registerAccount(navigationBar, user)
     
     const productsPage: ProductsPage = await navigationBar.gotoProducts()
     await productsPage.addProductToCart(testProducts.blueTop)
@@ -304,8 +288,8 @@ test('15: Place Order: Register before Checkout', async ({ navigationBar, cartMo
     await expect(cartPage.cartItems).toBeVisible()
     
     const checkoutPage: CheckoutPage = await cartPage.proceedToCheckout()
-    const address: Address = await checkoutPage.getDeliveryAddress()
-    expect(address).toStrictEqual({
+    const deliveryAddress: Address = await checkoutPage.getDeliveryAddress()
+    expect(deliveryAddress).toStrictEqual({
         fullName:       user.title + '. ' + user.firstname + ' ' + user.lastname,
         company:        user.company,
         address1:       user.address1,
@@ -324,22 +308,16 @@ test('15: Place Order: Register before Checkout', async ({ navigationBar, cartMo
     const orderConfirmationPage: OrderConfirmationPage = await paymentPage.payAndConfirmOrder()
     await expect(orderConfirmationPage.orderPlacedHeading).toHaveText('Order Placed!')
     
-    await test.step("Delete Account", async () => {
-        const accountDeletedPage: AccountDeletedPage = await navigationBar.deleteAccount()
-        await expect(navigationBar.accountDeletedMessage).toBeVisible()
-        
-        await accountDeletedPage.continueToHome()
-    })
+    await flows.deleteAccount(navigationBar)
 })
 
 
-test('16: Place Order: Login before Checkout', async ({ navigationBar, cartModal }) => {
+test('16: Place Order: Login before Checkout', async ({ navigationBar, cartModal, flows }) => {
     const loginPage: LoginPage = await navigationBar.gotoLogin()
     await expect(loginPage.loginHeading).toBeVisible()
     
     const user: User = testUser_correctLogin
     await loginPage.login(user)
-    console.log(user.password)
     await expect(navigationBar.loggedInUser).toHaveText(user.name)
     
     const productsPage: ProductsPage = await navigationBar.gotoProducts()
@@ -349,8 +327,8 @@ test('16: Place Order: Login before Checkout', async ({ navigationBar, cartModal
     await expect(cartPage.cartItems).toBeVisible()
     
     const checkoutPage: CheckoutPage = await cartPage.proceedToCheckout()
-    const address: Address = await checkoutPage.getDeliveryAddress()
-    expect(address).toStrictEqual({
+    const deliveryAddress: Address = await checkoutPage.getDeliveryAddress()
+    expect(deliveryAddress).toStrictEqual({
         fullName:       user.title + '. ' + user.firstname + ' ' + user.lastname,
         company:        user.company,
         address1:       user.address1,
@@ -369,12 +347,7 @@ test('16: Place Order: Login before Checkout', async ({ navigationBar, cartModal
     const orderConfirmationPage: OrderConfirmationPage = await paymentPage.payAndConfirmOrder()
     await expect(orderConfirmationPage.orderPlacedHeading).toHaveText('Order Placed!')
     
-    await test.step("Delete Account", async () => {
-        const accountDeletedPage: AccountDeletedPage = await navigationBar.deleteAccount()
-        await expect(navigationBar.accountDeletedMessage).toBeVisible()
-        
-        await accountDeletedPage.continueToHome()
-    })
+    await flows.deleteAccount(navigationBar)
 })
 
 
@@ -388,7 +361,7 @@ test('17: Remove Products From Cart', async ({ navigationBar, cartModal }) => {
     
     await cartPage.removeProduct(0)
     await expect(cartPage.cartIsEmptySection).toBeVisible()
-    await expect(cartPage.cartProductRows).not.toBeVisible()
+    await expect(cartPage.cartProductRows).toBeHidden()
 })
 
 
@@ -421,4 +394,203 @@ test('19: View & Cart Brand Products', async ({ navigationBar, productFiltersSid
     
     await productFiltersSidebar.setBrand(brand)
     await expect(brandProductsPage.categoryProductsHeader).toHaveText(`Brand - ${brand} Products`)
+})
+
+
+test('20: Search Products and Verify Cart After Login', async ({ navigationBar, cartModal }) => {
+    const searchTerm: string = 'white'
+    const productsPage: ProductsPage = await navigationBar.gotoProducts()
+    
+    await productsPage.searchProduct(searchTerm)
+    await expect(productsPage.searchedProductsHeader).toBeVisible()
+    
+    await productsPage.addAllProductsToCart(cartModal)
+    
+    const cartPage: CartPage = await navigationBar.gotoCart()
+    const cartProducts: CartProduct[] = await cartPage.getCartProducts()
+    
+    const loginPage: LoginPage = await navigationBar.gotoLogin()
+    await loginPage.login(testUser_correctLogin)
+    await navigationBar.gotoCart()
+    
+    const cartProductsAfterLogin: CartProduct[] = await cartPage.getCartProducts()
+    expect(cartProducts).toEqual(cartProductsAfterLogin)
+})
+
+
+test('21: Add review on product', async ({ navigationBar }) => {
+    const productsPage: ProductsPage = await navigationBar.gotoProducts()
+    const productDetailsPage: ProductDetailsPage = await productsPage.viewProduct(0)
+    
+    await productDetailsPage.submitReview('name', 'email@email.com', 'review text')
+    await expect(productDetailsPage.reviewSubmittedMessage).toBeVisible()
+    await expect(productDetailsPage.reviewSubmittedMessage).toBeHidden()
+})
+
+
+test('22: Add to cart from Recommended items', async ({ page, cartModal }) => {
+    const homePage: HomePage = new HomePage(page)
+    const { name, price } = await homePage.getProductNameAndPrice(0)
+    await homePage.addProductToCart(0)
+    
+    const cartPage: CartPage = await cartModal.viewCart()
+    const cartProducts: CartProduct[] = await cartPage.getCartProducts()
+    expect(name).toBe(cartProducts[0].name)
+    expect(price).toBe(cartProducts[0].price)
+})
+
+
+test('23: Verify address details in checkout page', async ({ navigationBar, cartModal, flows }) => {
+    const user: User = generateUserData()
+    await flows.registerAccount(navigationBar, user)
+    
+    const productsPage: ProductsPage = await navigationBar.gotoProducts()
+    await productsPage.addProductToCart(testProducts.blueTop)
+    await cartModal.continueShopping()
+    
+    await productsPage.addProductToCart(testProducts.winterTop)
+    const cartPage: CartPage = await cartModal.viewCart()
+    await expect(cartPage.cartItems).toBeVisible()
+    
+    const checkoutPage: CheckoutPage = await cartPage.proceedToCheckout()
+    const deliveryAddress: Address = await checkoutPage.getDeliveryAddress()
+    expect(deliveryAddress).toStrictEqual({
+        fullName:       user.title + '. ' + user.firstname + ' ' + user.lastname,
+        company:        user.company,
+        address1:       user.address1,
+        address2:       user.address2,
+        fullLocation:   user.city + ' ' + user.state + ' ' + user.zipcode,
+        country:        user.country,
+        mobile_number:  user.mobile_number,
+    })
+    
+    const billingAddress: Address = await checkoutPage.getBillingAddress()
+    expect(billingAddress).toStrictEqual({
+        fullName:       user.title + '. ' + user.firstname + ' ' + user.lastname,
+        company:        user.company,
+        address1:       user.address1,
+        address2:       user.address2,
+        fullLocation:   user.city + ' ' + user.state + ' ' + user.zipcode,
+        country:        user.country,
+        mobile_number:  user.mobile_number,
+    })
+    
+    await flows.deleteAccount(navigationBar)
+})
+
+
+test('24: Download Invoice after purchase order', async ({ page, navigationBar, cartModal, flows }) => {
+    const user: User = generateUserData()
+    await flows.registerAccount(navigationBar, user)
+    
+    const productsPage: ProductsPage = await navigationBar.gotoProducts()
+    await productsPage.addProductToCart(testProducts.blueTop)
+    await cartModal.continueShopping()
+    
+    await productsPage.addProductToCart(testProducts.winterTop)
+    const cartPage: CartPage = await cartModal.viewCart()
+    await expect(cartPage.cartItems).toBeVisible()
+    
+    const checkoutPage: CheckoutPage = await cartPage.proceedToCheckout()
+    const deliveryAddress: Address = await checkoutPage.getDeliveryAddress()
+    expect(deliveryAddress).toStrictEqual({
+        fullName:       user.title + '. ' + user.firstname + ' ' + user.lastname,
+        company:        user.company,
+        address1:       user.address1,
+        address2:       user.address2,
+        fullLocation:   user.city + ' ' + user.state + ' ' + user.zipcode,
+        country:        user.country,
+        mobile_number:  user.mobile_number,
+    })
+    
+    const billingAddress: Address = await checkoutPage.getBillingAddress()
+    expect(billingAddress).toStrictEqual({
+        fullName:       user.title + '. ' + user.firstname + ' ' + user.lastname,
+        company:        user.company,
+        address1:       user.address1,
+        address2:       user.address2,
+        fullLocation:   user.city + ' ' + user.state + ' ' + user.zipcode,
+        country:        user.country,
+        mobile_number:  user.mobile_number,
+    })
+    
+    await checkoutPage.addOrderComment('test comment ' + new Date().toISOString())
+    const totalPrice: number = extractPrice(await checkoutPage.getTotalPrice())
+    
+    const paymentPage: PaymentPage = await checkoutPage.placeOrder()
+    await paymentPage.enterPaymentDetails(testPaymentDetails)
+    
+    const orderConfirmationPage: OrderConfirmationPage = await paymentPage.payAndConfirmOrder()
+    await expect(orderConfirmationPage.orderPlacedHeading).toContainText('Order Placed!')
+    
+    const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        orderConfirmationPage.downloadInvoice()
+    ])
+    const suggestedName: string = download.suggestedFilename()
+    expect(suggestedName).toContain('invoice')
+    
+    const targetPath: string = 'downloads/' + suggestedName
+    await download.saveAs(targetPath)
+    
+    const content: string = await fs.readFile(targetPath, 'utf-8')
+    expect(content).toContain(`Hi ${user.name}, Your total purchase amount is ${totalPrice}. Thank you`)
+    
+    await flows.deleteAccount(navigationBar)
+})
+
+
+test("25: Verify Scroll Up using 'Arrow' button and Scroll Down functionality", async ({ footer, scrollUpButton, navigationBar }) => {
+    await footer.subscriptionHeader.scrollIntoViewIfNeeded()
+    await expect(footer.subscriptionHeader).toBeVisible()
+    await expect(scrollUpButton.scrollUpButton).toBeVisible()
+    
+    await scrollUpButton.scrollToTop()
+    await expect(navigationBar.cartButton).toBeVisible()
+    await expect(scrollUpButton.scrollUpButton).toBeHidden()
+})
+
+
+test("26: Verify Scroll Up without 'Arrow' button and Scroll Down functionality", async ({ footer, scrollUpButton, navigationBar }) => {
+    await footer.subscriptionHeader.scrollIntoViewIfNeeded()
+    await expect(footer.subscriptionHeader).toBeVisible()
+    await expect(scrollUpButton.scrollUpButton).toBeVisible()
+    
+    await navigationBar.cartButton.scrollIntoViewIfNeeded()
+    await expect(navigationBar.cartButton).toBeVisible()
+    await expect(scrollUpButton.scrollUpButton).toBeHidden()
+})
+
+
+test('27: Verify Correct Products are Added to Cart', async ({ navigationBar, cartModal }) => {
+    const searchTerm: string = 'top'
+    const productsPage: ProductsPage = await navigationBar.gotoProducts()
+    
+    await productsPage.searchProduct(searchTerm)
+    await expect(productsPage.searchedProductsHeader).toBeVisible()
+    
+    const expectedProducts: Product[] = await productsPage.getAllProductsDetails()
+    await productsPage.addAllProductsToCart(cartModal)
+    
+    const cartPage: CartPage = await navigationBar.gotoCart()
+    const cartProducts: CartProduct[] = await cartPage.getCartProducts()
+    const cartProductsNormalized: CartProduct[] = cartProducts.map((p: CartProduct) => ({
+        name: p.name,
+        category: normalizeText(p.category.replace('Category: ', '')),
+        price: p.price,
+        quantity: '1',
+        total: p.price
+    }))
+    const expectedCartProducts: CartProduct[] = expectedProducts.map((p: Product) => ({
+        name: p.name,
+        category: normalizeText(p.category!.replace('Category: ', '')),
+        price: p.price,
+        quantity: '1',
+        total: p.price
+    }))
+    
+    const sortByName: (a: CartProduct, b: CartProduct) => number = (a, b) => a.name.localeCompare(b.name)
+    expectedCartProducts.sort(sortByName)
+    cartProductsNormalized.sort(sortByName)
+    expect(cartProductsNormalized).toEqual(expectedCartProducts)
 })

@@ -3,10 +3,10 @@ import { User } from "../test-data/test-data"
 
 
 export class Footer {
-    readonly footer: Locator
+    private readonly footer: Locator
     readonly subscriptionHeader: Locator
-    readonly subscriptionEmailInput: Locator
-    readonly subscriptionSubmitButton: Locator
+    private readonly subscriptionEmailInput: Locator
+    private readonly subscriptionSubmitButton: Locator
     readonly subscriptionSuccessMessage: Locator
     
     constructor(private readonly page: Page) {

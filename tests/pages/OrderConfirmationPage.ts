@@ -15,6 +15,10 @@ export class OrderConfirmationPage {
     }
     
     
+    async downloadInvoice(): Promise<void>{
+        await this.downloadInvoiceButton.click()
+        // return invoice?
+    }
     
     async continueToHome(): Promise<void> {
         await this.continueButton.click()

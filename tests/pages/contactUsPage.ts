@@ -11,10 +11,10 @@ export class ContactUsPage {
     private readonly returnHomeButton: Locator
     
     constructor(private readonly page: Page) {
-        this.contactForm        = this.page.locator('.contact-form')
-        this.getInTouchHeading  = this.contactForm.getByRole('heading', { name: 'Get In Touch' })
+        this.contactForm        = this.page.locator('#contact-page >> .contact-form')
+        this.getInTouchHeading  = this.contactForm.locator('h2.title')
         this.chooseFileButton   = this.contactForm.locator('input[name="upload_file"]')
-        this.messageSentMessage = this.contactForm.locator('.alert-success', { hasText: 'Success! Your details have been submitted successfully.' })
+        this.messageSentMessage = this.contactForm.locator('.status.alert.alert-success')
         this.returnHomeButton   = this.contactForm.locator('.btn-success')
     }
     
@@ -32,12 +32,10 @@ export class ContactUsPage {
     }
     
     async submitMessage(): Promise<void> {
-        this.page.on('dialog', 
-            async (dialog): Promise<void> => {
-                await dialog.accept()
-        })
-        
-        await this.page.getByTestId('submit-button').click()
+        await Promise.all([
+            this.page.waitForEvent('dialog').then(dialog => dialog.accept()),
+            this.page.getByTestId('submit-button').click()
+        ])
     }
     
     async returnHome(): Promise<void> {

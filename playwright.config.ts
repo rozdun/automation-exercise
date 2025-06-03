@@ -1,12 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 export default defineConfig({
   testDir: './tests',
@@ -23,8 +16,25 @@ export default defineConfig({
   
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Dektop Chrome'] },
+      name: 'setup',
+      testMatch: /setup\.ts/,
+      use: {
+        storageState: './tests/test-data/gdpr.json',
+      },
+    },
+    {
+      name: 'E2E',
+      testMatch: '**/001_e2e.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: './tests/test-data/gdpr.json',
+      },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'API',
+      testMatch: '**/101_API.spec.ts',
+      dependencies: ['setup'],
     },
 
     // {
