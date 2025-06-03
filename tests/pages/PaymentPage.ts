@@ -1,6 +1,6 @@
 import { Locator, Page } from "@playwright/test"
 import { PaymentDetails } from "../test-data/test-data"
-import { OrderConfirmationPage } from "./oOrderConfirmationPage"
+import { OrderConfirmationPage } from "./OrderConfirmationPage"
 
 
 export class PaymentPage {

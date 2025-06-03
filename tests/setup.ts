@@ -1,6 +1,6 @@
 import { test, expect }  from "./fixtures/test"
-import { LoginPage } from "./pages/lLoginPage"
-import { CartPage } from "./pages/cCartPage"
+import { LoginPage } from "./pages/LoginPage"
+import { CartPage } from "./pages/CartPage"
 import { testUser_correctLogin, User } from "./test-data/test-data"
 
 

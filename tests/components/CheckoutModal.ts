@@ -1,6 +1,6 @@
 import { Locator, Page } from "@playwright/test"
-import { SignupPage } from "../pages/sSignupPage"
-import { LoginPage } from "../pages/lLoginPage"
+import { SignupPage } from "../pages/SignupPage"
+import { LoginPage } from "../pages/LoginPage"
 
 
 export class CheckoutModal {
