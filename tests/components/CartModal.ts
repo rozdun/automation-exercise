@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test"
-import { CartPage } from "../pages/CartPage"
+import { CartPage } from "../pages/cCartPage"
 
 
 export class CartModal {

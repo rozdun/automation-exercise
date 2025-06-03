@@ -1,7 +1,7 @@
 import { Locator, Page } from "@playwright/test"
 import { Address, CartProduct } from "../test-data/test-data"
 import { CartTable } from "../components/CartTable"
-import { PaymentPage } from "./PaymentPage"
+import { PaymentPage } from "./pPaymentPage"
 
 
 export class CheckoutPage {

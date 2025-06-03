@@ -1,8 +1,8 @@
 import test, { expect, Page } from "@playwright/test"
-import { SignupPage } from "../pages/SignupPage"
+import { SignupPage } from "../pages/sSignupPage"
 import { NavigationBar } from "../components/NavigationBar"
 import { User } from "../test-data/test-data"
-import { AccountDeletedPage } from "../pages/AccountDeletedPage"
+import { AccountDeletedPage } from "../pages/aAccountDeletedPage"
 
 
 

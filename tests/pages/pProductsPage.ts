@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test"
-import { ProductDetailsPage } from "./ProductDetailsPage"
+import { ProductDetailsPage } from "./pProductDetailsPage"
 import { Product, SearchError } from "../test-data/test-data"
 import { normalizeText } from "../utils/utils"
 import { CartModal } from "../components/CartModal"

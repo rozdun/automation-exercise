@@ -1,10 +1,10 @@
 import { Locator, Page } from "@playwright/test"
-import { SignupPage } from "../pages/SignupPage"
-import { LoginPage } from "../pages/LoginPage"
-import { ContactUsPage } from "../pages/ContactUsPage"
-import { AccountDeletedPage } from "../pages/AccountDeletedPage"
-import { CartPage } from "../pages/CartPage"
-import { ProductsPage } from "../pages/ProductsPage"
+import { SignupPage } from "../pages/sSignupPage"
+import { LoginPage } from "../pages/lLoginPage"
+import { ContactUsPage } from "../pages/cContactUsPage"
+import { AccountDeletedPage } from "../pages/aAccountDeletedPage"
+import { CartPage } from "../pages/cCartPage"
+import { ProductsPage } from "../pages/pProductsPage"
 
 
 export class NavigationBar {

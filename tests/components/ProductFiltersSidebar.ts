@@ -1,7 +1,7 @@
 import { Locator, Page } from "@playwright/test"
 import { Category, Subcategory, Brand } from "../test-data/product-filters"
-import { CategoryProductsPage } from "../pages/CategoryProductsPage"
-import { BrandProductsPage } from "../pages/BrandProductsPage"
+import { CategoryProductsPage } from "../pages/cCategoryProductsPage"
+import { BrandProductsPage } from "../pages/bBrandProductsPage"
 
 export class ProductFiltersSidebar {
     private readonly leftSidebar: Locator
